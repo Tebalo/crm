@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,22 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// NextAuth.js required models
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -46,78 +41,62 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Application Models
 model User {
-  id            String    @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String         @unique
   emailVerified DateTime?
   image         String?
   password      String?
-  role          UserRole  @default(AGENT)
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // NextAuth relations
-  accounts Account[]
-  sessions Session[]
-
-  // Application relations
-  assignedCases Case[] @relation("AssignedAgent")
+  role          UserRole       @default(AGENT)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  accounts      Account[]
+  sessions      Session[]
   activities    CaseActivity[]
+  assignedCases Case[]         @relation("AssignedAgent")
 
   @@map("users")
 }
 
 model Case {
-  id          String     @id @default(cuid())
-  caseNumber  String     @unique @default(cuid())
-  title       String
-  description String     @db.Text
-  status      CaseStatus @default(OPEN)
-  priority    Priority   @default(MEDIUM)
-  category    String?
-  source      CaseSource @default(WEB_FORM)
-  
-  // Contact Information
+  id           String           @id @default(cuid())
+  caseNumber   String           @unique @default(cuid())
+  title        String
+  description  String
+  status       CaseStatus       @default(OPEN)
+  priority     Priority         @default(MEDIUM)
+  category     String?
+  source       CaseSource       @default(WEB_FORM)
   contactName  String?
   contactEmail String?
   contactPhone String?
-  
-  // Assignment
   assignedToId String?
-  assignedTo   User?   @relation("AssignedAgent", fields: [assignedToId], references: [id])
-  
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  resolvedAt  DateTime?
-  closedAt    DateTime?
-  
-  // SLA tracking
-  dueDate     DateTime?
-  isOverdue   Boolean  @default(false)
-  
-  // Relations
-  activities  CaseActivity[]
-  attachments CaseAttachment[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  resolvedAt   DateTime?
+  closedAt     DateTime?
+  dueDate      DateTime?
+  isOverdue    Boolean          @default(false)
+  activities   CaseActivity[]
+  attachments  CaseAttachment[]
+  assignedTo   User?            @relation("AssignedAgent", fields: [assignedToId], references: [id])
 
   @@map("cases")
 }
 
 model CaseActivity {
-  id        String           @id @default(cuid())
-  caseId    String
-  userId    String?
-  type      ActivityType
-  title     String
-  content   String?          @db.Text
-  isInternal Boolean         @default(false)
-  createdAt DateTime         @default(now())
-
-  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  user User? @relation(fields: [userId], references: [id])
+  id         String       @id @default(cuid())
+  caseId     String
+  userId     String?
+  type       ActivityType
+  title      String
+  content    String?
+  isInternal Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+  case       Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  user       User?        @relation(fields: [userId], references: [id])
 
   @@map("case_activities")
 }
@@ -130,13 +109,11 @@ model CaseAttachment {
   fileSize  Int
   mimeType  String
   createdAt DateTime @default(now())
-
-  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
 
   @@map("case_attachments")
 }
 
-// Enums
 enum UserRole {
   ADMIN
   SUPERVISOR
