@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole       @default(AGENT)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  activities    CaseActivity[]
+  assignedCases Case[]         @relation("AssignedAgent")
+
+  @@map("users")
+}
+
+model Case {
+  id           String           @id @default(cuid())
+  caseNumber   String           @unique @default(cuid())
+  title        String
+  description  String
+  status       CaseStatus       @default(OPEN)
+  priority     Priority         @default(MEDIUM)
+  category     String?
+  source       CaseSource       @default(WEB_FORM)
+  contactName  String?
+  contactEmail String?
+  contactPhone String?
+  assignedToId String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  resolvedAt   DateTime?
+  closedAt     DateTime?
+  dueDate      DateTime?
+  isOverdue    Boolean          @default(false)
+  activities   CaseActivity[]
+  attachments  CaseAttachment[]
+  assignedTo   User?            @relation("AssignedAgent", fields: [assignedToId], references: [id])
+
+  @@map("cases")
+}
+
+model CaseActivity {
+  id         String       @id @default(cuid())
+  caseId     String
+  userId     String?
+  type       ActivityType
+  title      String
+  content    String?
+  isInternal Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+  case       Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  user       User?        @relation(fields: [userId], references: [id])
+
+  @@map("case_activities")
+}
+
+model CaseAttachment {
+  id        String   @id @default(cuid())
+  caseId    String
+  fileName  String
+  fileUrl   String
+  fileSize  Int
+  mimeType  String
+  createdAt DateTime @default(now())
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("case_attachments")
+}
+
+enum UserRole {
+  ADMIN
+  SUPERVISOR
+  AGENT
+  VIEWER
+}
+
+enum CaseStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum CaseSource {
+  WEB_FORM
+  EMAIL
+  PHONE
+  IN_PERSON
+  SOCIAL_MEDIA
+}
+
+enum ActivityType {
+  CREATED
+  ASSIGNED
+  STATUS_CHANGED
+  COMMENT
+  EMAIL_SENT
+  EMAIL_RECEIVED
+  RESOLVED
+  CLOSED
+}

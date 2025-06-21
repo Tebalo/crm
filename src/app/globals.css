@@ -112,7 +112,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
     --radius: 0.65rem;
     --card: oklch(1 0 0);
