@@ -1,7 +1,29 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { MessageSquare, Users, Clock } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+import {
+  MessageSquare,
+  Users,
+  Clock,
+  Fuel,
+  Leaf
+} from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 export default function HomePage() {
   return (
@@ -15,10 +37,27 @@ export default function HomePage() {
             </div>
             <span className="text-xl font-semibold text-gray-900">Botswana Oil CRM</span>
           </div>
-          <div className="space-x-4">
-            <Link href="/feedback">
-              <Button variant="outline">Submit Feedback</Button>
-            </Link>
+
+          <div className="flex items-center space-x-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">Submit Feedback</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Public Forms</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/forms/fuel">Fuel Supply & Distribution</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/forms/ehs">Environmental, Health & Safety (EHS)</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/forms/feedback">General Feedback & Complaints</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Link href="/auth/signin">
               <Button>Staff Login</Button>
             </Link>
@@ -35,13 +74,7 @@ export default function HomePage() {
           Your feedback matters to us. Submit your queries, complaints, or suggestions and track their progress in real-time.
         </p>
         <div className="space-x-4">
-          <Link href="/feedback">
-            <Button size="lg" className="text-lg px-8 py-4">
-              <MessageSquare className="mr-2 h-5 w-5" />
-              Submit Feedback
-            </Button>
-          </Link>
-          <Link href="/feedback/track">
+          <Link href="/forms/track">
             <Button variant="outline" size="lg" className="text-lg px-8 py-4">
               <Clock className="mr-2 h-5 w-5" />
               Track Your Case
@@ -124,8 +157,10 @@ export default function HomePage() {
             <div>
               <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
               <ul className="space-y-2 text-gray-300">
-                <li><Link href="/feedback" className="hover:text-white">Submit Feedback</Link></li>
-                <li><Link href="/feedback/track" className="hover:text-white">Track Case</Link></li>
+                <li><Link href="/forms/fuel" className="hover:text-white">Fuel Supply</Link></li>
+                <li><Link href="/forms/ehs" className="hover:text-white">EHS Issues</Link></li>
+                <li><Link href="/forms/feedback" className="hover:text-white">General Feedback</Link></li>
+                <li><Link href="/forms/feedback/track" className="hover:text-white">Track Case</Link></li>
                 <li><Link href="/auth/signin" className="hover:text-white">Staff Login</Link></li>
               </ul>
             </div>
