@@ -1,0 +1,920 @@
+{
+  "info": {
+    "name": "Botswana Oil CRM API",
+    "description": "Complete API collection for Botswana Oil Customer Relationship Management system with enhanced case type support",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{session_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "session_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "case_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Sign In",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.user) {",
+                  "        pm.collectionVariables.set('user_id', responseJson.user.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@botswanaoil.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/signin",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "signin"]
+            },
+            "description": "Sign in with credentials. Use seeded accounts:\n- admin@botswanaoil.com / admin123\n- agent1@botswanaoil.com / agent123"
+          }
+        },
+        {
+          "name": "Register User (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"newuser@botswanaoil.com\",\n  \"password\": \"password123\",\n  \"role\": \"AGENT\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Create new user account (Admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/users?page=1&limit=10&role=AGENT",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"],
+                {
+                  "key": "timeRange",
+                  "value": "7",
+                  "description": "Weekly analysis"
+                }
+              ]
+            },
+            "description": "Get weekly dashboard statistics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agents & Assignment",
+      "item": [
+        {
+          "name": "Get Available Agents",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/agents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "agents"]
+            },
+            "description": "Get list of available agents with workload information"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bulk Operations",
+      "item": [
+        {
+          "name": "Bulk Assign Cases",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caseIds\": [\"{{case_id}}\"],\n  \"assignedToId\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cases/bulk/assign",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases", "bulk", "assign"]
+            },
+            "description": "Assign multiple cases to an agent"
+          }
+        },
+        {
+          "name": "Bulk Unassign Cases",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caseIds\": [\"{{case_id}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cases/bulk/assign",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases", "bulk", "assign"]
+            },
+            "description": "Unassign multiple cases (remove assignedToId)"
+          }
+        },
+        {
+          "name": "Bulk Update Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caseIds\": [\"{{case_id}}\"],\n  \"status\": \"RESOLVED\",\n  \"comment\": \"Bulk resolution after investigation completion\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cases/bulk/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases", "bulk", "status"]
+            },
+            "description": "Update status for multiple cases"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Pre-request script to handle authentication",
+          "if (pm.request.url.path.join('/').includes('api/feedback') && pm.request.method === 'POST') {",
+          "    // Remove auth for public feedback endpoints",
+          "    pm.request.removeHeader('Authorization');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "pm.test('Response time is less than 2000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});",
+          "",
+          "pm.test('Response has proper content type', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});",
+          "",
+          "if (pm.response.code !== 200) {",
+          "    pm.test('Error response has error message', function () {",
+          "        const responseJson = pm.response.json();",
+          "        pm.expect(responseJson).to.have.property('error');",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ]
+}
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "role",
+                  "value": "AGENT"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get paginated list of users with optional filtering"
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}"]
+            },
+            "description": "Get specific user details"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"role\": \"SUPERVISOR\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}"]
+            },
+            "description": "Update user information"
+          }
+        },
+        {
+          "name": "Deactivate User",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}"]
+            },
+            "description": "Deactivate user (soft delete)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Basic Cases",
+      "item": [
+        {
+          "name": "Get All Cases",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.cases && responseJson.cases.length > 0) {",
+                  "        pm.collectionVariables.set('case_id', responseJson.cases[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/cases?page=1&limit=10&status=OPEN&search=fuel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "OPEN"
+                },
+                {
+                  "key": "priority",
+                  "value": "HIGH",
+                  "disabled": true
+                },
+                {
+                  "key": "assignedToId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "fuel"
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get cases with filtering and pagination"
+          }
+        },
+        {
+          "name": "Create Basic Case",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.case) {",
+                  "        pm.collectionVariables.set('case_id', responseJson.case.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Customer Service Complaint\",\n  \"description\": \"Customer reports long wait times at Gaborone station during peak hours\",\n  \"priority\": \"MEDIUM\",\n  \"category\": \"Customer Service\",\n  \"source\": \"WEB_FORM\",\n  \"contactName\": \"John Doe\",\n  \"contactEmail\": \"john.doe@email.com\",\n  \"contactPhone\": \"+267 71234567\",\n  \"assignedToId\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cases",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases"]
+            },
+            "description": "Create a new basic case"
+          }
+        },
+        {
+          "name": "Get Case by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/cases/{{case_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases", "{{case_id}}"]
+            },
+            "description": "Get detailed case information including activities"
+          }
+        },
+        {
+          "name": "Update Case",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"priority\": \"HIGH\",\n  \"assignedToId\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cases/{{case_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases", "{{case_id}}"]
+            },
+            "description": "Update case details"
+          }
+        },
+        {
+          "name": "Delete Case (Admin Only)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/cases/{{case_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases", "{{case_id}}"]
+            },
+            "description": "Delete case (Admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enhanced Cases with Types",
+      "item": [
+        {
+          "name": "Get Enhanced Cases",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/cases-enhanced?page=1&limit=10&caseType=FUEL_SUPPLY_DISTRIBUTION",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases-enhanced"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "caseType",
+                  "value": "FUEL_SUPPLY_DISTRIBUTION"
+                },
+                {
+                  "key": "status",
+                  "value": "OPEN",
+                  "disabled": true
+                },
+                {
+                  "key": "priority",
+                  "value": "HIGH",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get cases with type-specific filtering"
+          }
+        },
+        {
+          "name": "Create Fuel Supply Case",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Fuel Quality Issue - Contaminated Petrol 95\",\n  \"description\": \"Customer reports engine problems after refueling with Petrol 95. Possible water contamination detected.\",\n  \"priority\": \"HIGH\",\n  \"caseType\": \"FUEL_SUPPLY_DISTRIBUTION\",\n  \"subCategory\": \"Fuel Quality Issues\",\n  \"source\": \"WEB_FORM\",\n  \"contactName\": \"Maria Santos\",\n  \"contactEmail\": \"maria.santos@email.com\",\n  \"contactPhone\": \"+267 72345678\",\n  \"locationName\": \"Gaborone Main Station\",\n  \"severity\": \"MAJOR\",\n  \"fuelSupplyData\": {\n    \"fuelType\": \"PETROL_95\",\n    \"supplierName\": \"Botswana Oil Refinery\",\n    \"deliveryDate\": \"2024-01-15T08:00:00Z\",\n    \"quantityAffected\": 5000,\n    \"qualityIssue\": \"Suspected water contamination in fuel tank\",\n    \"testResults\": \"Water content: 0.5% (exceeds 0.1% limit)\",\n    \"batchNumber\": \"BOL-2024-001-A\",\n    \"tankNumber\": \"Tank-03\",\n    \"stationLocation\": \"Gaborone Main Station, Plot 123\",\n    \"refundRequired\": true,\n    \"refundAmount\": 2500.00\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cases-enhanced",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases-enhanced"]
+            },
+            "description": "Create fuel supply & distribution case with specialized fields"
+          }
+        },
+        {
+          "name": "Create EHS Case",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Workplace Safety Incident - Chemical Spill\",\n  \"description\": \"Small chemical spill occurred during routine maintenance at Francistown depot. No injuries reported but area evacuated as precaution.\",\n  \"priority\": \"URGENT\",\n  \"caseType\": \"ENVIRONMENTAL_HEALTH_SAFETY\",\n  \"subCategory\": \"Environmental Spill\",\n  \"source\": \"INTERNAL_AUDIT\",\n  \"contactName\": \"Safety Officer\",\n  \"contactEmail\": \"safety@botswanaoil.com\",\n  \"locationName\": \"Francistown Depot\",\n  \"locationAddress\": \"Industrial Area, Francistown\",\n  \"severity\": \"MODERATE\",\n  \"impactLevel\": \"LIMITED\",\n  \"incidentDate\": \"2024-01-20T14:30:00Z\",\n  \"ehsData\": {\n    \"incidentType\": \"SPILL\",\n    \"locationDetails\": \"Loading bay area, near Tank 5\",\n    \"weatherConditions\": \"Clear, 28°C, light wind\",\n    \"equipmentInvolved\": \"Fuel transfer hose, pump unit PU-05\",\n    \"personnelInvolved\": \"John Technician, Mary Supervisor\",\n    \"medicalAttention\": false,\n    \"workersCompClaim\": false,\n    \"rootCause\": \"Worn seal in transfer hose connection\",\n    \"correctiveActions\": \"Immediate area cleanup, hose replacement, safety inspection\",\n    \"preventiveActions\": \"Implement weekly hose inspection schedule, replace all seals older than 6 months\",\n    \"investigationStatus\": \"IN_PROGRESS\",\n    \"reportedToAuthorities\": true,\n    \"authorityName\": \"Department of Environmental Affairs\",\n    \"reportDate\": \"2024-01-20T16:00:00Z\",\n    \"witnessCount\": 2,\n    \"injuryOccurred\": false,\n    \"environmentalImpact\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cases-enhanced",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases-enhanced"]
+            },
+            "description": "Create Environmental, Health & Safety case with incident details"
+          }
+        },
+        {
+          "name": "Create Regulatory Case",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Environmental Permit Renewal Required\",\n  \"description\": \"Annual environmental permit for Gaborone refinery expires in 30 days. Need to submit renewal application with updated environmental impact assessment.\",\n  \"priority\": \"HIGH\",\n  \"caseType\": \"REGULATORY_COMPLIANCE\",\n  \"subCategory\": \"Permit Applications\",\n  \"source\": \"REGULATORY_INSPECTION\",\n  \"contactName\": \"Compliance Officer\",\n  \"contactEmail\": \"compliance@botswanaoil.com\",\n  \"regulatoryData\": {\n    \"regulationType\": \"ENVIRONMENTAL_PERMIT\",\n    \"regulatoryBody\": \"Department of Environmental Affairs\",\n    \"licenseNumber\": \"EP-2023-BOL-001\",\n    \"permitNumber\": \"ENV-PERMIT-2024-123\",\n    \"inspectionDate\": \"2024-01-10T09:00:00Z\",\n    \"inspectorName\": \"Dr. Jane Environmental\",\n    \"complianceDeadline\": \"2024-02-20T23:59:59Z\",\n    \"referenceNumber\": \"DEA-2024-REF-456\",\n    \"complianceRequired\": \"Submit updated Environmental Impact Assessment, noise level measurements, and waste management plan\",\n    \"documentationNeeded\": \"EIA report, noise study, waste disposal contracts, emergency response plan\",\n    \"legalCounselNeeded\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cases-enhanced",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases-enhanced"]
+            },
+            "description": "Create regulatory & compliance case with permit details"
+          }
+        },
+        {
+          "name": "Create General Feedback Case",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Suggestion for Extended Hours\",\n  \"description\": \"Customer suggests extending operating hours at weekend for better service availability. Many customers work during weekdays and would appreciate weekend service.\",\n  \"priority\": \"MEDIUM\",\n  \"caseType\": \"GENERAL_FEEDBACK_COMPLAINTS\",\n  \"subCategory\": \"General Suggestions\",\n  \"source\": \"WEB_FORM\",\n  \"contactName\": \"Alice Customer\",\n  \"contactEmail\": \"alice.customer@email.com\",\n  \"contactPhone\": \"+267 73456789\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cases-enhanced",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases-enhanced"]
+            },
+            "description": "Create general feedback & complaints case"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Case Activities",
+      "item": [
+        {
+          "name": "Get Case Activities",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/cases/{{case_id}}/activities?includeInternal=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases", "{{case_id}}", "activities"],
+              "query": [
+                {
+                  "key": "includeInternal",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Get case activity history"
+          }
+        },
+        {
+          "name": "Add Case Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Investigation Update\",\n  \"content\": \"Conducted field inspection at the site. Found evidence of equipment malfunction. Recommending immediate repairs and temporary shutdown of affected equipment.\",\n  \"isInternal\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cases/{{case_id}}/activities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases", "{{case_id}}", "activities"]
+            },
+            "description": "Add comment or note to case"
+          }
+        },
+        {
+          "name": "Add Public Update",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Customer Update\",\n  \"content\": \"We have identified the issue and are working on a solution. We will keep you updated on our progress.\",\n  \"isInternal\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cases/{{case_id}}/activities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cases", "{{case_id}}", "activities"]
+            },
+            "description": "Add public-facing update to case"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public Feedback",
+      "item": [
+        {
+          "name": "Submit Fuel Quality Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Poor Fuel Quality at Maun Station\",\n  \"description\": \"I filled up at your Maun station yesterday and my car started making strange noises. I suspect there might be water in the fuel. Please investigate.\",\n  \"contactName\": \"Public Customer\",\n  \"contactEmail\": \"customer@email.com\",\n  \"contactPhone\": \"+267 74567890\",\n  \"caseType\": \"FUEL_SUPPLY_DISTRIBUTION\",\n  \"fuelType\": \"PETROL_93\",\n  \"stationLocation\": \"Maun Station\",\n  \"incidentDate\": \"2024-01-19T15:30:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/feedback",
+              "host": ["{{base_url}}"],
+              "path": ["api", "feedback"]
+            },
+            "description": "Submit public feedback for fuel quality issues (no authentication required)"
+          }
+        },
+        {
+          "name": "Submit Safety Incident Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Safety Concern at Station\",\n  \"description\": \"I noticed that the fire extinguisher at pump 3 appears to be damaged and the safety inspection tag is expired. This could be a serious safety hazard.\",\n  \"contactName\": \"Concerned Citizen\",\n  \"contactEmail\": \"safety.citizen@email.com\",\n  \"caseType\": \"ENVIRONMENTAL_HEALTH_SAFETY\",\n  \"incidentType\": \"EQUIPMENT_FAILURE\",\n  \"locationName\": \"Kasane Station\",\n  \"incidentDate\": \"2024-01-21T10:00:00Z\",\n  \"injuryOccurred\": false,\n  \"medicalAttention\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/feedback",
+              "host": ["{{base_url}}"],
+              "path": ["api", "feedback"]
+            },
+            "description": "Submit public safety incident report"
+          }
+        },
+        {
+          "name": "Submit General Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Excellent Customer Service\",\n  \"description\": \"I want to commend the staff at your Palapye station for their excellent service. They were very helpful and professional.\",\n  \"contactName\": \"Happy Customer\",\n  \"contactEmail\": \"happy.customer@email.com\",\n  \"contactPhone\": \"+267 75678901\",\n  \"caseType\": \"GENERAL_FEEDBACK_COMPLAINTS\",\n  \"subCategory\": \"Customer Service\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/feedback",
+              "host": ["{{base_url}}"],
+              "path": ["api", "feedback"]
+            },
+            "description": "Submit general customer feedback"
+          }
+        },
+        {
+          "name": "Track Case Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caseNumber\": \"BOL-20241201-001\",\n  \"contactEmail\": \"customer@email.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/feedback/track",
+              "host": ["{{base_url}}"],
+              "path": ["api", "feedback", "track"]
+            },
+            "description": "Track case status using case number and email (no authentication required)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Case Types & Configuration",
+      "item": [
+        {
+          "name": "Get All Case Types",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/case-types",
+              "host": ["{{base_url}}"],
+              "path": ["api", "case-types"]
+            },
+            "description": "Get all available case types with basic configuration"
+          }
+        },
+        {
+          "name": "Get Fuel Supply Configuration",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/case-types?caseType=FUEL_SUPPLY_DISTRIBUTION",
+              "host": ["{{base_url}}"],
+              "path": ["api", "case-types"],
+              "query": [
+                {
+                  "key": "caseType",
+                  "value": "FUEL_SUPPLY_DISTRIBUTION"
+                }
+              ]
+            },
+            "description": "Get detailed configuration for fuel supply cases"
+          }
+        },
+        {
+          "name": "Get EHS Configuration",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/case-types?caseType=ENVIRONMENTAL_HEALTH_SAFETY",
+              "host": ["{{base_url}}"],
+              "path": ["api", "case-types"],
+              "query": [
+                {
+                  "key": "caseType",
+                  "value": "ENVIRONMENTAL_HEALTH_SAFETY"
+                }
+              ]
+            },
+            "description": "Get detailed configuration for EHS cases"
+          }
+        },
+        {
+          "name": "Get Regulatory Configuration",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/case-types?caseType=REGULATORY_COMPLIANCE",
+              "host": ["{{base_url}}"],
+              "path": ["api", "case-types"],
+              "query": [
+                {
+                  "key": "caseType",
+                  "value": "REGULATORY_COMPLIANCE"
+                }
+              ]
+            },
+            "description": "Get detailed configuration for regulatory cases"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics & Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/stats?timeRange=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "stats"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30",
+                  "description": "Days to analyze"
+                }
+              ]
+            },
+            "description": "Get comprehensive dashboard statistics"
+          }
+        },
+        {
+          "name": "Get Weekly Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/stats?timeRange=7",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "stats"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "7",
+                  "description": "Weekly analysis"
+                }
+              ]
+            },
+            "description": "Get weekly dashboard statistics"
+            }
+            }
+            }
+            }
+            }
+{
+  "info": {
+
+    "name": "Botswana Oil CRM API",
+    "description": "API for managing customer relations, cases, and feedback for Botswana Oil.",
+    "version": "1.0.0",
+    "_postman_id": "12345678-1234-1234-1234-123456789012"
+  },
+    "variables": [
+        {
+        "key": "base_url",
+        "value": "https://api.botswanaoil.com",
+        "type": "string"
+        },
+        {
+        "key": "user_id",
+        "value": "{{user_id}}",
+        "type": "string"
+        },
+        {
+        "key": "case_id",
+        "value": "{{case_id}}",
+        "type": "string"
+        }
+    ],
+    "item": [
+        {
+        "name": "Authentication",
+        "item": [
+            {
+            "name": "Login",
+            "request": {
+                "method": "POST",
+                "header": [
+                {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                }
+                ],
+                "body": {
+                "mode": "raw",
+                "raw": "{\n  \"email\": \"
+                
