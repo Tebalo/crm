@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -9,10 +8,32 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-// import { useToast } from "@/components/ui/sonner"
 import { signInSchema, type SignInInput } from "@/lib/validations/auth"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+
+// Auth API configuration
+const AUTH_API_URL = "http://74.208.205.44:8019/api/auth_microservice/login/"
+const DECODE_API_URL = "http://74.208.205.44:8019/api/auth_microservice/decode-token/"
+
+interface AuthResponse {
+  access: string
+  refresh: string
+}
+
+interface DecodedTokenResponse {
+  payload: {
+    user_id: number
+    exp: number
+    roles: string[]
+    profile: {
+      username: string
+      first_name: string
+      last_name: string
+      email: string
+    }
+  }
+}
 
 export function LoginForm({
   className,
@@ -21,7 +42,6 @@ export function LoginForm({
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
-  // const { toast } = useToast()
 
   const {
     register,
@@ -31,42 +51,103 @@ export function LoginForm({
     resolver: zodResolver(signInSchema),
   })
 
+  const getClientInfo = () => {
+    return {
+      ipAddress: '', // You might want to get this from a service
+      userAgent: navigator.userAgent,
+    }
+  }
+
   const onSubmit = async (data: SignInInput) => {
     setIsLoading(true)
 
     try {
-      const result = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
+      // Step 1: Authenticate with external service
+      const authResponse = await fetch(AUTH_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: data.email,
+          password: data.password,
+        }),
       })
 
-      if (result?.error) {
-        toast("Login Failed",{
-          description: "Invalid email or password. Please try again."
-        })
-      } else if (result?.ok) {
-        // Get the session to check user role
-        const session = await getSession()
-        
-        toast("Login Successful",{
-          description: `Welcome back, ${session?.user?.name || session?.user?.email}!`,
-        })
-
-        // Redirect based on user role
-        if (session?.user?.role === "ADMIN") {
-          router.push("/dashboard") // Create a dedicated admin dashboard /admin/dashboard
-        } else {
-          router.push("/dashboard")
-        }
-        
-        // Refresh the page to update the session
-        router.refresh()
+      if (!authResponse.ok) {
+        const errorData = await authResponse.json().catch(() => null)
+        throw new Error(errorData?.message || "Invalid credentials")
       }
+
+      const authData: AuthResponse = await authResponse.json()
+
+      // Step 2: Decode the token to get user info
+      const decodeResponse = await fetch(DECODE_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: authData.access,
+        }),
+      })
+
+      if (!decodeResponse.ok) {
+        throw new Error("Failed to decode token")
+      }
+
+      const decodedData: DecodedTokenResponse = await decodeResponse.json()
+
+      // Step 3: Create session in your database
+      const sessionResponse = await fetch('/api/auth/create-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          decodedPayload: decodedData.payload,
+          accessToken: authData.access,
+          refreshToken: authData.refresh,
+          clientInfo: getClientInfo(),
+        }),
+      })
+
+      if (!sessionResponse.ok) {
+        throw new Error("Failed to create session")
+      }
+
+      const sessionData = await sessionResponse.json()
+
+      // Step 4: Store session info in sessionStorage (not localStorage for security)
+      sessionStorage.setItem('session_token', sessionData.sessionToken)
+      sessionStorage.setItem('access_token', authData.access)
+      sessionStorage.setItem('refresh_token', authData.refresh)
+      sessionStorage.setItem('user_data', JSON.stringify({
+        id: sessionData.user.id,
+        email: sessionData.user.email,
+        name: sessionData.user.name,
+        role: sessionData.user.role,
+        expires: sessionData.expires,
+      }))
+
+      toast("Login Successful", {
+        description: `Welcome back, ${decodedData.payload.profile.first_name}!`,
+      })
+
+      // Redirect based on user role
+      const userRoles = decodedData.payload.roles || []
+      if (userRoles.includes("admin") || sessionData.user.role === "ADMIN") {
+        router.push("/admin/dashboard")
+      } else {
+        router.push("/dashboard")
+      }
+      
+      router.refresh()
+
     } catch (error) {
       console.error("Login error:", error)
-      toast("Login Error",{
-        description: "Something went wrong. Please try again."
+      toast("Login Failed", {
+        description: error instanceof Error ? error.message : "Invalid email or password. Please try again."
       })
     } finally {
       setIsLoading(false)
@@ -74,14 +155,9 @@ export function LoginForm({
   }
 
   const handleGitHubSignIn = async () => {
-    try {
-      await signIn("github", { callbackUrl: "/dashboard" })
-    } catch (error) {
-      console.error("GitHub sign-in error:", error)
-      toast("Sign-in Error",{
-        description: "Failed to sign in with GitHub."
-      })
-    }
+    toast("GitHub Sign-in", {
+      description: "GitHub authentication not configured for this endpoint."
+    })
   }
 
   return (
@@ -99,7 +175,7 @@ export function LoginForm({
 
       <div className="grid gap-6">
         <div className="grid gap-3">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Email/Username</Label>
           <Input
             id="email"
             type="email"
@@ -121,10 +197,9 @@ export function LoginForm({
               className="ml-auto text-sm underline-offset-4 hover:underline"
               onClick={(e) => {
                 e.preventDefault()
-                // toast({
-                //   title: "Password Reset",
-                //   description: "Password reset functionality will be available in the next version.",
-                // })
+                toast("Password Reset", {
+                  description: "Password reset functionality will be available in the next version.",
+                })
               }}
             >
               Forgot your password?
@@ -196,8 +271,8 @@ export function LoginForm({
           Demo accounts for testing:
         </div>
         <div className="text-xs space-y-1 text-muted-foreground">
-          <div>Admin: admin@botswanaoil.com / admin123</div>
-          <div>Agent: agent1@botswanaoil.com / agent123</div>
+          <div>Demo: john_doe / SecureP@ssword123</div>
+          <div>Check API documentation for other test accounts</div>
         </div>
       </div>
 

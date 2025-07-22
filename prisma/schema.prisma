@@ -7,96 +7,89 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
+// Session management for external auth users
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String    @id @default(cuid())
+  sessionToken     String    @unique
+  externalUserId   String    // ID from external auth service
+  userEmail        String
+  userName         String?
+  userRole         String    // Store role as string
+  expires          DateTime
+  isActive         Boolean   @default(true)
+  tokenHash        String?   // Hash of the access token for validation
+  ipAddress        String?
+  userAgent        String?
+  deviceInfo       String?   // Device/browser information
+  lastAccessed     DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  revokedAt        DateTime?
+  revokedBy        String?   // Admin who revoked the session
+  revokeReason     String?   // Reason for revocation
+
+  @@map("sessions")
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+// Session analytics for external auth users
+model SessionAnalytics {
+  id             String   @id @default(cuid())
+  externalUserId String   // ID from external auth service
+  userEmail      String
+  userName       String?
+  userRole       String?
+  sessionId      String   // Reference to Session.id
+  loginTime      DateTime @default(now())
+  logoutTime     DateTime?
+  ipAddress      String?
+  userAgent      String?
+  location       String?  // City/Country if available
+  deviceType     String?  // Mobile/Desktop/Tablet
+  duration       Int?     // Session duration in seconds
 
-  @@unique([identifier, token])
+  @@map("session_analytics")
 }
 
-model User {
-  id            String         @id @default(cuid())
-  name          String?
-  email         String         @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          UserRole       @default(AGENT)
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-  activities    CaseActivity[]
-  assignedCases Case[]         @relation("AssignedAgent")
-
-  @@map("users")
-}
-
+// Cases with external user references
 model Case {
-  id           String           @id @default(cuid())
-  caseNumber   String           @unique @default(cuid())
-  title        String
-  description  String
-  status       CaseStatus       @default(OPEN)
-  priority     Priority         @default(MEDIUM)
-  category     String?
-  source       CaseSource       @default(WEB_FORM)
-  contactName  String?
-  contactEmail String?
-  contactPhone String?
-  assignedToId String?
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  resolvedAt   DateTime?
-  closedAt     DateTime?
-  dueDate      DateTime?
-  isOverdue    Boolean          @default(false)
-  activities   CaseActivity[]
-  attachments  CaseAttachment[]
-  assignedTo   User?            @relation("AssignedAgent", fields: [assignedToId], references: [id])
+  id                 String           @id @default(cuid())
+  caseNumber         String           @unique @default(cuid())
+  title              String
+  description        String
+  status             CaseStatus       @default(OPEN)
+  priority           Priority         @default(MEDIUM)
+  category           String?
+  source             CaseSource       @default(WEB_FORM)
+  contactName        String?
+  contactEmail       String?
+  contactPhone       String?
+  assignedToUserId   String?          // External user ID
+  assignedToEmail    String?          // For display purposes
+  assignedToName     String?          // For display purposes
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  resolvedAt         DateTime?
+  closedAt           DateTime?
+  dueDate            DateTime?
+  isOverdue          Boolean          @default(false)
+  activities         CaseActivity[]
+  attachments        CaseAttachment[]
 
   @@map("cases")
 }
 
+// Case activities with external user references
 model CaseActivity {
   id         String       @id @default(cuid())
   caseId     String
-  userId     String?
+  userId     String?      // External user ID
+  userEmail  String?      // User email for reference
+  userName   String?      // User name for reference
   type       ActivityType
   title      String
   content    String?
   isInternal Boolean      @default(false)
   createdAt  DateTime     @default(now())
   case       Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  user       User?        @relation(fields: [userId], references: [id])
 
   @@map("case_activities")
 }
@@ -112,13 +105,6 @@ model CaseAttachment {
   case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
 
   @@map("case_attachments")
-}
-
-enum UserRole {
-  ADMIN
-  SUPERVISOR
-  AGENT
-  VIEWER
 }
 
 enum CaseStatus {
@@ -153,4 +139,223 @@ enum ActivityType {
   EMAIL_RECEIVED
   RESOLVED
   CLOSED
+}
+
+model Account {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  gender  String?
+  birthDate DateTime?
+  nationality String?
+  indentityNumber String?
+  passport String?
+
+  // role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Personalization
+  preferences   UserPreferences?
+  subscriptions Subscription[]
+  searchHistory SearchHistory[]
+  downloads     Download[]
+  contact       Contact?
+
+  @@map("accounts")
+}
+
+model Contact {
+  id String @id @default(cuid())
+  accountId String @unique
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  phoneNumber String?
+  telephone String?
+  address String?
+  city String?
+  postalCode String?
+  country String?
+  email String?
+  socialMedia Json // {"facebook": "url", "twitter": "url", "linkedin": "url"}  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contacts")
+}
+
+model UserPreferences {
+  id     String @id @default(cuid())
+  accountId String @unique
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  // Personalization fields
+  preferredAuthorities String[] // ["BOB", "NBFIRA", "FIA"]
+  businessType         String?  // "banking", "insurance", "fintech"
+  experienceLevel      String?  // "beginner", "intermediate", "expert"
+  notificationSettings Json     // email, sms, push preferences
+  dashboardLayout      Json     // custom dashboard configuration
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+model RegulatoryAuthority {
+  id          String @id @default(cuid())
+  name        String @unique // "Bank of Botswana", "NBFIRA", "FIA"
+  code        String @unique // "BOB", "NBFIRA", "FIA"
+  description String?
+  website     String?
+  contactInfo Json
+
+  documents Document[]
+  faqs      FAQ[]
+
+  @@map("regulatory_authorities")
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  content     String? // Full text for search
+  fileUrl     String?
+  fileName    String?
+  fileSize    Int?
+  
+  // Categorization
+  type        DocumentType
+  category    String   // "licensing", "compliance", "policy"
+  subcategory String?  // "banking", "insurance", "payments"
+  tags        String[] // searchable tags
+  
+  // Metadata
+  authorityId String
+  authority   RegulatoryAuthority @relation(fields: [authorityId], references: [id])
+  version     String               @default("1.0")
+  effectiveDate DateTime?
+  expiryDate    DateTime?
+  
+  // Search optimization
+  searchVector String? // For full-text search
+  
+  // Relationships
+  requirements ComplianceRequirement[]
+  downloads    Download[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("documents")
+}
+
+model ComplianceRequirement {
+  id          String @id @default(cuid())
+  title       String
+  description String
+  mandatory   Boolean @default(true)
+  
+  // Business applicability
+  businessTypes String[] // ["banking", "insurance", "payments"]
+  serviceTypes  String[] // ["lending", "deposit-taking", "asset-management"]
+  
+  // Relationships
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+  
+  // Checklist generation
+  estimatedCost    Float?
+  estimatedTimeframe String? // "2-4 weeks"
+  dependencies     String[] // IDs of other requirements
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("compliance_requirements")
+}
+
+model FAQ {
+  id          String @id @default(cuid())
+  question    String
+  answer      String
+  category    String
+  tags        String[]
+  
+  authorityId String?
+  authority   RegulatoryAuthority? @relation(fields: [authorityId], references: [id])
+  
+  viewCount   Int @default(0)
+  helpful     Int @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("faqs")
+}
+
+model Subscription {
+  id     String @id @default(cuid())
+  accountId String
+  account Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  
+  type        SubscriptionType
+  categories  String[] // what categories to get alerts for
+  authorities String[] // which authorities to follow
+  frequency   String   @default("immediate") // "immediate", "daily", "weekly"
+  
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("subscriptions")
+}
+
+model SearchHistory {
+  id     String @id @default(cuid())
+  accountId String
+  account Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  
+  query      String
+  filters    Json
+  resultCount Int
+  timestamp  DateTime @default(now())
+
+  @@map("search_history")
+}
+
+model Download {
+  id         String @id @default(cuid())
+  accountId     String
+  account    Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+  
+  downloadType String // "document", "checklist", "summary"
+  timestamp    DateTime @default(now())
+
+  @@map("downloads")
+}
+
+// enum UserRole {
+//   USER
+//   ADMIN
+//   AUTHORITY_ADMIN
+// }
+
+enum DocumentType {
+  ACT
+  REGULATION
+  POLICY
+  GUIDELINE
+  DIRECTIVE
+  FORM
+  CIRCULAR
+  ANNOUNCEMENT
+}
+
+enum SubscriptionType {
+  DOCUMENT_UPDATES
+  NEW_REGULATIONS
+  AUTHORITY_NEWS
+  COMPLIANCE_REMINDERS
 }

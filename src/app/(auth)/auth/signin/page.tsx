@@ -12,7 +12,7 @@ export default function LoginPage() {
             <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
               <GalleryVerticalEnd className="size-4" />
             </div>
-            Botswana Oil Ltd.
+            <span>Bank Of Botswana.</span>
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
