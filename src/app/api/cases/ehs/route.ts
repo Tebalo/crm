@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { CaseSchema } from '@/lib/validations/case'
 
+
 export async function POST(req: Request) {
   try {
     const body = await req.json()
