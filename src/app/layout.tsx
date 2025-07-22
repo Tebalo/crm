@@ -7,8 +7,8 @@ import { Toaster } from "@/components/ui/sonner"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Botswana Oil CRM",
-  description: "Customer Relationship Management System for Botswana Oil",
+  title: "Botswana Of Botswana",
+  description: "Customer Relationship Management System for Botswana Of Botswana",
 }
 
 export default function RootLayout({

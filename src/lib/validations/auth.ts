@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { UserRole, CaseStatus, Priority, CaseSource } from "@prisma/client"
+import { CaseStatus, Priority, CaseSource } from "@prisma/client"
 
 // Auth Schemas
 export const signInSchema = z.object({
@@ -11,14 +11,14 @@ export const signUpSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  role: z.nativeEnum(UserRole).default(UserRole.AGENT),
+  // role: z.nativeEnum(UserRole).default(UserRole.AGENT),
 })
 
 // User Schemas
 export const updateUserSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").optional(),
   email: z.string().email("Invalid email address").optional(),
-  role: z.nativeEnum(UserRole).optional(),
+  // role: z.nativeEnum(UserRole).optional(),
   isActive: z.boolean().optional(),
 })
 
