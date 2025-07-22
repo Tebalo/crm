@@ -14,8 +14,6 @@ import {
   MessageSquare,
   Users,
   Clock,
-  Fuel,
-  Leaf
 } from "lucide-react"
 import {
   Card,
