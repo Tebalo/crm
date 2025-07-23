@@ -1,11 +1,11 @@
 import { z } from "zod"
 import { CaseStatus, Priority, CaseSource } from "@prisma/client"
 
-// Auth Schemas
-export const signInSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
-})
+// // Auth Schemas
+// export const signInSchema = z.object({
+//   email: z.string().email("Invalid email address"),
+//   password: z.string().min(1, "Password is required"),
+// })
 
 export const signUpSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -64,8 +64,83 @@ export const addCaseActivitySchema = z.object({
   isInternal: z.boolean().default(false),
 })
 
-// Types
+export const signInSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+})
+
+export const registrationStepOneSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
+      "Password must contain uppercase, lowercase, number, and special character"),
+  confirmPassword: z.string(),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  isStaff: z.boolean().default(false),
+  isSuperuser: z.boolean().default(false),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+})
+
+export const registrationStepTwoSchema = z.object({
+  // Personal/Organization Details
+  accountType: z.enum(["individual", "organization"], {
+    required_error: "Please select account type",
+  }),
+  
+  // Personal Details (for individuals)
+  gender: z.string().optional(),
+  birthDate: z.string().optional(),
+  nationality: z.string().optional(),
+  identityNumber: z.string().optional(),
+  passport: z.string().optional(),
+  
+  // Organization Details (for organizations)
+  organizationName: z.string().optional(),
+  registrationNumber: z.string().optional(),
+  businessType: z.string().optional(),
+  serviceTypes: z.array(z.string()).default([]),
+  
+  // Contact Information
+  phoneNumber: z.string().optional(),
+  telephone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional(),
+  country: z.string().default("Botswana"),
+  
+  // Social Media (optional)
+  facebook: z.string().url().optional().or(z.literal("")),
+  twitter: z.string().url().optional().or(z.literal("")),
+  linkedin: z.string().url().optional().or(z.literal("")),
+  
+  // Preferences
+  preferredAuthorities: z.array(z.string()).default([]),
+  experienceLevel: z.enum(["beginner", "intermediate", "expert"]).optional(),
+  
+  // Notifications
+  emailNotifications: z.boolean().default(true),
+  smsNotifications: z.boolean().default(false),
+  
+  // Terms and Privacy
+  agreeToTerms: z.boolean().refine((val) => val === true, {
+    message: "You must agree to the terms and conditions",
+  }),
+  agreeToPrivacy: z.boolean().refine((val) => val === true, {
+    message: "You must agree to the privacy policy",
+  }),
+})
+
 export type SignInInput = z.infer<typeof signInSchema>
+export type RegistrationStepOneInput = z.infer<typeof registrationStepOneSchema>
+export type RegistrationStepTwoInput = z.infer<typeof registrationStepTwoSchema>
+
+// Types
+// export type SignInInput = z.infer<typeof signInSchema>
 export type SignUpInput = z.infer<typeof signUpSchema>
 export type UpdateUserInput = z.infer<typeof updateUserSchema>
 export type CreateCaseInput = z.infer<typeof createCaseSchema>
