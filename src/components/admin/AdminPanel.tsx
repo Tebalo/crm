@@ -30,7 +30,6 @@ export default function AdminPanel() {
   const [selectedType, setSelectedType] = useState<string>('all')
   const [showDocumentForm, setShowDocumentForm] = useState(false)
   const [showRequirementForm, setShowRequirementForm] = useState(false)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [editingDocument, setEditingDocument] = useState<DocumentWithDetails | null>(null)
   const [error, setError] = useState<string | null>(null)
 

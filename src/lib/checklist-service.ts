@@ -364,7 +364,6 @@ export class ChecklistService {
    */
   private static async saveChecklistGeneration(
     accountId: string, 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     checklist: ComplianceChecklist
   ): Promise<void> {
     try {

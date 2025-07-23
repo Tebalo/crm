@@ -41,7 +41,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       } else {
         setError('Authentication required')
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    
     } catch (err) {
       setError('Failed to verify authentication')
     } finally {
