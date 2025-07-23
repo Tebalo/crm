@@ -1,19 +1,19 @@
-import { requireRole } from '@/lib/auth-middleware';
-import { AdminApiResponse } from '@/types/admin';
-import { PrismaClient } from '@prisma/client';
-import { NextRequest, NextResponse } from 'next/server';
+import { requireRole } from '@/lib/auth-middleware'
+import { AdminApiResponse } from '@/types/admin'
+import { PrismaClient } from '@prisma/client'
+import { NextRequest, NextResponse } from 'next/server'
 
 const prisma = new PrismaClient()
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ): Promise<NextResponse<AdminApiResponse>> {
   try {
     // Require admin role
     await requireRole(request, 'ADMIN')
 
-    const { id } = params
+    const { id } = await context.params
 
     // Delete document and cascade to requirements
     await prisma.document.delete({

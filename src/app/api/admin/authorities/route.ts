@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 import { requireRole } from '@/lib/auth-middleware'
 import type { AdminApiResponse, AuthorityOption } from '@/types/admin'
 
 const prisma = new PrismaClient()
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request: NextRequest): Promise<NextResponse<AdminApiResponse<AuthorityOption[]>>> {
   try {
     // Require admin role

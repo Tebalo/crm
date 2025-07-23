@@ -2,21 +2,20 @@
 
 import * as React from "react"
 import {
-  IconCamera,
-  IconChartBar,
   IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
-  IconInnerShadowTop,
-  IconListDetails,
-  IconReport,
+  IconFileText,
+  IconChecklist,
+  IconBuilding,
+  IconChartBar,
+  IconShield,
   IconSearch,
+  IconHelp,
   IconSettings,
-  IconUsers,
+  IconBookmark,
+  IconDownload,
+  IconCalendar,
+  IconBell,
+  IconMessage,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -35,9 +34,9 @@ import {
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@botswanaoil.bw",
-    avatar: "/avatars/shadcn.jpg",
+    name: "John Doe",
+    email: "john.doe@standardbank.co.bw",
+    avatar: "/avatars/user.jpg",
   },
   navMain: [
     {
@@ -46,106 +45,145 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
-      url: "/dashboard/lifecycle",
-      icon: IconListDetails,
+      title: "Documents",
+      url: "/documents",
+      icon: IconFileText,
+    },
+    {
+      title: "Compliance Checklist",
+      url: "/checklist",
+      icon: IconChecklist,
+    },
+    {
+      title: "Authorities",
+      url: "/authorities",
+      icon: IconBuilding,
     },
     {
       title: "Analytics",
-      url: "/dashboard/analytics",
+      url: "/analytics",
       icon: IconChartBar,
-    },
-    {
-      title: "Cases",
-      url: "/dashboard/cases",
-      icon: IconFolder,
-    },
-    {
-      title: "Users",
-      url: "#",
-      icon: IconUsers,
     },
   ],
   navClouds: [
     {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
+      title: "Bank of Botswana",
+      icon: IconShield,
+      isActive: false,
+      url: "/authorities/bob",
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: "Banking Regulations",
+          url: "/authorities/bob/banking",
         },
         {
-          title: "Archived",
-          url: "#",
+          title: "Monetary Policy",
+          url: "/authorities/bob/monetary",
+        },
+        {
+          title: "Supervision Guidelines",
+          url: "/authorities/bob/supervision",
         },
       ],
     },
     {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
+      title: "NBFIRA",
+      icon: IconShield,
+      url: "/authorities/nbfira",
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: "Insurance Regulations",
+          url: "/authorities/nbfira/insurance",
         },
         {
-          title: "Archived",
-          url: "#",
+          title: "Pension Guidelines",
+          url: "/authorities/nbfira/pension",
+        },
+        {
+          title: "Market Conduct",
+          url: "/authorities/nbfira/conduct",
         },
       ],
     },
     {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
+      title: "FIA",
+      icon: IconShield,
+      url: "/authorities/fia",
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: "AML Guidelines",
+          url: "/authorities/fia/aml",
         },
         {
-          title: "Archived",
-          url: "#",
+          title: "Reporting Requirements",
+          url: "/authorities/fia/reporting",
+        },
+        {
+          title: "Compliance Forms",
+          url: "/authorities/fia/forms",
         },
       ],
     },
   ],
   navSecondary: [
     {
-      title: "Settings",
-      url: "/dashboard/settings",
-      icon: IconSettings,
+      title: "Search",
+      url: "/search",
+      icon: IconSearch,
     },
     {
-      title: "Get Help",
-      url: "/dashboard/help",
+      title: "FAQ",
+      url: "/faq",
       icon: IconHelp,
     },
     {
-      title: "Search",
-      url: "/dashboard/search",
-      icon: IconSearch,
+      title: "Support",
+      url: "/support",
+      icon: IconMessage,
+    },
+    {
+      title: "Settings",
+      url: "/settings",
+      icon: IconSettings,
     },
   ],
   documents: [
     {
-      name: "Data Library",
-      url: "/dashboard/data-library",
-      icon: IconDatabase,
+      name: "My Bookmarks",
+      url: "/bookmarks",
+      icon: IconBookmark,
     },
     {
-      name: "Reports",
-      url: "/dashboard/reports",
-      icon: IconReport,
+      name: "Downloads",
+      url: "/downloads",
+      icon: IconDownload,
     },
     {
-      name: "Word Assistant",
-      url: "/dashboard/word-assistant",
-      icon: IconFileWord,
+      name: "Regulatory Calendar",
+      url: "/calendar",
+      icon: IconCalendar,
+    },
+    {
+      name: "Notifications",
+      url: "/notifications",
+      icon: IconBell,
+    },
+  ],
+  authorities: [
+    {
+      name: "Bank of Botswana",
+      url: "/authorities/bob",
+      icon: IconShield,
+    },
+    {
+      name: "NBFIRA",
+      url: "/authorities/nbfira", 
+      icon: IconShield,
+    },
+    {
+      name: "FIA",
+      url: "/authorities/fia",
+      icon: IconShield,
     },
   ],
 }
@@ -161,8 +199,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="/dashboard">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <IconShield className="!size-5 text-blue-600" />
+                <span className="text-base font-semibold">Financial Regulatory Portal</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -170,6 +208,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        <NavDocuments items={data.authorities} />
         <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
